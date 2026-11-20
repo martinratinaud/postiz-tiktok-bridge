@@ -104,3 +104,7 @@ but TikTok rejects its requests since 2026-11-20 (`status_code=5`).
   page: the bridge then fails safely (no post) with the error in Postiz. Automated posting may go
   against TikTok's terms. Use it on your own account, at your own risk.
 - Resource limits are set in `docker-compose.yml`. Adjust them to your server.
+
+## License
+
+AGPL-3.0, like autotok and Postiz. See `LICENSE`.
