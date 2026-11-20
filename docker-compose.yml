@@ -1,0 +1,48 @@
+# Postiz -> TikTok bridge. Settings in .env (see .env.example).
+#   docker compose up -d --build              start the bridge
+#   docker compose --profile login up login   log in once (noVNC on 127.0.0.1:${LOGIN_PORT})
+#   docker compose run --rm autotok upload -u <account> -v /data/videos/x.mp4 -t "caption" -vi 1
+x-common: &common
+  image: postiz-tiktok-bridge:local
+  build: .
+  env_file: .env
+  volumes:
+    - ./data:/data
+    - postiz-uploads:/postiz-uploads:ro
+  shm_size: 512m
+
+services:
+  bridge:
+    <<: *common
+    entrypoint: ["sh", "-c", "Xvfb :99 -screen 0 1280x900x24 >/dev/null 2>&1 & exec python /app/bridge.py"]
+    environment:
+      DISPLAY: ":99"
+    restart: unless-stopped
+    networks: [postiz]
+    cpus: 1
+    mem_limit: 1536m
+    pids_limit: 1000
+
+  login:
+    <<: *common
+    entrypoint: ["/app/scripts/login.sh"]
+    ports: ["127.0.0.1:${LOGIN_PORT:-3010}:6080"]
+    cpus: 1.5
+    mem_limit: 2g
+    profiles: ["login"]
+
+  autotok:
+    <<: *common
+    cpus: 1
+    mem_limit: 1536m
+    profiles: ["cli"]
+
+volumes:
+  postiz-uploads:
+    external: true
+    name: ${POSTIZ_UPLOADS_VOLUME}
+
+networks:
+  postiz:
+    external: true
+    name: ${POSTIZ_NETWORK}
